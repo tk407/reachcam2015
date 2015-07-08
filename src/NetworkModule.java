@@ -25,7 +25,7 @@ import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
 
-public class NetworkModule {
+public class NetworkModule implements ICommModule {
 
 	public static class Client {
 		public Socket 			socket = null;
@@ -35,7 +35,7 @@ public class NetworkModule {
 		public String address = null;
 	}
 
-	private Vector clients = new Vector();
+	private Vector<Client> clients = new Vector<Client>();
 
 
 	private int nextID = 1;
@@ -100,7 +100,7 @@ public class NetworkModule {
 			
 			frame.addWindowListener( close );
 			
-			frame.show();
+			frame.setVisible(true);
 
 		}
 		catch( IOException ioe ) {
@@ -109,12 +109,20 @@ public class NetworkModule {
 
 	}
 	
+	/* (non-Javadoc)
+	 * @see ICommModule#setRacingGame(RacingGame)
+	 */
+	@Override
 	public void setRacingGame( RacingGame racingGame ) {
 		this.racingGame = racingGame;
 	}
 
 	private long timeAtReset = -1;
 
+	/* (non-Javadoc)
+	 * @see ICommModule#reset()
+	 */
+	@Override
 	public void reset() {
 		System.out.println( "resetting" );
 		status = 0;
@@ -146,6 +154,10 @@ public class NetworkModule {
 	
 	private volatile Thread receiveThread = null; 
 	
+	/* (non-Javadoc)
+	 * @see ICommModule#start()
+	 */
+	@Override
 	public void start() {
 		receiveThread = new Thread() {
 			public void run() {
@@ -160,6 +172,10 @@ public class NetworkModule {
 			receiveThread.start();
 	}
 	
+	/* (non-Javadoc)
+	 * @see ICommModule#stop()
+	 */
+	@Override
 	public void stop() {
 		receiveThread = null;
 	}
@@ -167,6 +183,10 @@ public class NetworkModule {
 	private java.awt.TextArea textArea = new java.awt.TextArea();
 	
 	
+	/* (non-Javadoc)
+	 * @see ICommModule#getAssignedID()
+	 */
+	@Override
 	public int getAssignedID() {
 		return assignedID;
 	}
@@ -228,6 +248,10 @@ public class NetworkModule {
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see ICommModule#sendNewClientDetails(java.lang.String, int)
+	 */
+	@Override
 	public synchronized void sendNewClientDetails( String address, int port ) {
 
 		for ( int i = 0; i < clients.size(); i++ ) {
@@ -245,6 +269,10 @@ public class NetworkModule {
 
 	}
 
+	/* (non-Javadoc)
+	 * @see ICommModule#sendCommand(java.lang.String)
+	 */
+	@Override
 	public synchronized void sendCommand( String command ) {
 		System.out.println( "sending " + command );
 		for ( int i = 0; i < clients.size(); i++ ) {
@@ -284,6 +312,10 @@ public class NetworkModule {
 
 	private String trackName = null;
 
+	/* (non-Javadoc)
+	 * @see ICommModule#getTrackName()
+	 */
+	@Override
 	public String getTrackName() {
 		return trackName;
 	}
@@ -291,12 +323,20 @@ public class NetworkModule {
 	private String[] tracks = null;
 	private int currentTrack = -1;
 
+	/* (non-Javadoc)
+	 * @see ICommModule#nextTrack()
+	 */
+	@Override
 	public void nextTrack() {
 		currentTrack++;
 		currentTrack = currentTrack % tracks.length;
 		trackName = tracks[ currentTrack ];
 	}
 
+	/* (non-Javadoc)
+	 * @see ICommModule#stopWaiting()
+	 */
+	@Override
 	public void stopWaiting() {
 		try {					
 			serverSocket.close();
@@ -360,7 +400,7 @@ public class NetworkModule {
 
 			dialog.setModal( true );
 			dialog.pack();
-			dialog.show();
+			dialog.setVisible(true);
 
 			int numPlayers = choice.getSelectedIndex();
 
@@ -381,7 +421,7 @@ public class NetworkModule {
 			doneDialog.add( new Label( "otherwise wait until all players have joined" ) );
 			doneDialog.add( done );
 			doneDialog.pack();
-			doneDialog.show();
+			doneDialog.setVisible(true);
 			
 			while( true ) {
 
@@ -477,6 +517,10 @@ public class NetworkModule {
 		return "ERROR";
 	}
 
+	/* (non-Javadoc)
+	 * @see ICommModule#listenForCommand()
+	 */
+	@Override
 	public String listenForCommand() {
 	
 		try {
@@ -557,15 +601,7 @@ public class NetworkModule {
 		//return "CONNECTED";
 	}
 
-	public static class State {
-		public float x;
-		public float vx;
-		public float y;
-		public float vy;
-		public float angle;
-		public float angularVelocity;
-		public boolean updated = false;
-	}
+	
 
 	private DatagramSocket receiverSocket = null;
 	private DatagramPacket receiverPacket = null;
@@ -626,14 +662,21 @@ public class NetworkModule {
 	}
 
 
+	/* (non-Javadoc)
+	 * @see ICommModule#getVehicleStates()
+	 */
+	@Override
 	public State[] getVehicleStates() {
 		return vehicleStates;
 	}
 
 	private byte status = 0;
 	
-	/** Broadcast the state of a vehicle to all of the other players. **/
+	/* (non-Javadoc)
+	 * @see ICommModule#broadcastState(Vehicle, Body.State)
+	 */
 
+	@Override
 	public void broadcastState( Vehicle vehicle, Body.State state ) {
 
 		int x = Float.floatToIntBits( state.x );
@@ -667,6 +710,10 @@ public class NetworkModule {
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see ICommModule#ready()
+	 */
+	@Override
 	public boolean ready() {
 		byte minStatus = (byte)3;
 		receivedStatuses[ assignedID ] = status;
@@ -686,10 +733,18 @@ public class NetworkModule {
 		return status >= 3;
 	}
 	
+	/* (non-Javadoc)
+	 * @see ICommModule#getStatus()
+	 */
+	@Override
 	public byte getStatus() {
 		return status;
 	}
 
+	/* (non-Javadoc)
+	 * @see ICommModule#receiveState()
+	 */
+	@Override
 	public void receiveState() {
 
 		receivedDataFrom[ assignedID ] = true;
