@@ -20,6 +20,12 @@
 import java.applet.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+
+import rlpark.plugin.rltoys.algorithms.control.acting.ControlPolicyAdapter;
+import rlpark.plugin.rltoys.envio.policy.Policy;
 
 public class RacingGame extends Applet implements Runnable {
 	private Race race = null;
@@ -30,7 +36,7 @@ public class RacingGame extends Applet implements Runnable {
 	private final int TRACK_IMAGE_SIZE = 48;
 	private int[] trackImagePixels = null;
 	private int[] trackPixels = null;
-	private ICommModule module = null;
+	private NetworkModule module = null;
 	private Font font = new Font( "monospaced", Font.PLAIN, 15 );
 	private Font bigfont = new Font( "monospaced", Font.BOLD, 20 );
 	private boolean limit = true; // limit frame rate
@@ -45,10 +51,10 @@ public class RacingGame extends Applet implements Runnable {
 		setBackground( Color.white );
 	}
 
-	public RacingGame( byte id, Vehicle[] vehicles, ICommModule module ) {
+	public RacingGame( byte id, Vehicle[] vehicles, NetworkModule module ) {
 		this();
 		this.module = module;
-		module.setRacingGame( this );
+		//module.setRacingGame( this );
 		vehicle = vehicles[ id ];
 		colors = new Color[ vehicles.length ];
 		
@@ -83,13 +89,13 @@ public class RacingGame extends Applet implements Runnable {
 			
 		System.out.println( "reseting racinggame" );
 		
-		if ( module != null ) {
+		//if ( module != null ) {
 	
 			boolean firsttime = track.sections == null;
 			try {
 		
-				java.io.Reader in = new java.io.FileReader( module.getTrackName() );
-				//java.io.Reader in = new java.io.FileReader( "circle.track" );
+				//java.io.Reader in = new java.io.FileReader( module.getTrackName() );
+				java.io.Reader in = new java.io.FileReader( "circle.track" );
 
 
 				track.load( in );
@@ -103,13 +109,13 @@ public class RacingGame extends Applet implements Runnable {
 			}
 			
 			if ( !firsttime )
-				module.reset();
+				//module.reset();
 				
 			if ( frame != null )
 				frame.setTitle( "circle.track" );
 			
 			//System.out.println( "sections " + track.sections.length );
-		}
+		//}
 		
 		race.reset();
 		
@@ -723,7 +729,7 @@ public class RacingGame extends Applet implements Runnable {
 		about.setModal( true );
 		
 		about.pack();
-		about.setVisible(true);
+		about.show();
 	}
 
 	public static void main( String[] args ) {
@@ -733,15 +739,12 @@ public class RacingGame extends Applet implements Runnable {
 			return;
 		}*/
 		 final Frame frame = new Frame();
-		final Dialog dialog = new Dialog( frame, "RacingGame" );
-		dialog.setLayout( new GridLayout( 5, 1 ) );
+		/*final Dialog dialog = new Dialog( frame, "RacingGame" );
+		dialog.setLayout( new GridLayout( 4, 1 ) );
 
 		Button host = new Button( "Host" );
 		host.setActionCommand( "host" );
 		dialog.add( host );
-		Button aimode = new Button( "aimode" );
-		aimode.setActionCommand( "aimode" );
-		dialog.add( aimode );
 
 		Button join = new Button( "Join" );
 		join.setActionCommand( "join" );
@@ -768,10 +771,6 @@ public class RacingGame extends Applet implements Runnable {
 					dialogResult.append( "host" );
 					dialog.dispose();
 				}
-				else if ( command.equals( "aimode" ) ) {
-					dialogResult.append( "aimode" );
-					dialog.dispose();
-				}
 				else if ( command.equals( "join" ) ) {
 					dialogResult.append( "join" );
 					dialog.dispose();
@@ -786,52 +785,52 @@ public class RacingGame extends Applet implements Runnable {
 		};
 
 		host.addActionListener( actionListener );
-		aimode.addActionListener( actionListener );
-
 		join.addActionListener( actionListener );
 		about.addActionListener( actionListener );
 		cancel.addActionListener( actionListener );
 
 		dialog.setModal( true );
 		dialog.pack();
-		dialog.setVisible(true);
+		dialog.show();
 
-		ICommModule module;
+		NetworkModule module = null;
 		if ( dialogResult.toString().equals( "host" ) ) {
 
 			module = new NetworkModule( 1234 );
 
-			String result = ((NetworkModule)module).listenAsServer();
+			String result = module.listenAsServer();
 			System.out.println( result );
 
 		}
-		else if ( dialogResult.toString().equals( "join" ) ){
+		else {
 
 			module = new NetworkModule( 1235 );
 
-			String result = ((NetworkModule)module).connectToServer( hostAddress.getText(), 1234 );
+			String result = module.connectToServer( hostAddress.getText(), 1234 );
 			System.out.println( result );
-		} else { // aimode
-		  module = new AICommModule();
-		  
-		  String result =  "DONE";
-
 		}
 
-		NetworkModule.State[] states = module.getVehicleStates(); 
-		byte id = (byte)module.getAssignedID();
-		//byte id = 0;
+		NetworkModule.State[] states = module.getVehicleStates(); */
+		//byte id = (byte)module.getAssignedID();
+		byte id = 0;
+		try{ 
+			FileInputStream door = new FileInputStream("reachcarsarsapolicy.ser");
+			ObjectInputStream reader = new ObjectInputStream(door);
+			Policy x = (Policy) reader.readObject(); 
+			ControlPolicyAdapter control = new ControlPolicyAdapter(x);
+			//control.
+		}catch (IOException | ClassNotFoundException e){ e.printStackTrace();}
 		
-		Vehicle[] vehicles = new Vehicle[ states.length ];
-		//Vehicle[] vehicles = new Vehicle[ 1 ];
+		//Vehicle[] vehicles = new Vehicle[ states.length ];
+		Vehicle[] vehicles = new Vehicle[ 1 ];
 
 		for ( int i = 0; i < vehicles.length; i++ ) {
 			vehicles[ i ] = new Vehicle( (byte)i, 224 + i*10, 128 );
 		}
 
-		final RacingGame vehicleTest = new RacingGame( id, vehicles, module );
-		//final RacingGame vehicleTest = new RacingGame( id, vehicles, null );
-		vehicleTest.setSize( 300, 300 );
+		//final RacingGame vehicleTest = new RacingGame( id, vehicles, module );
+		final RacingGame vehicleTest = new RacingGame( id, vehicles, null );
+		vehicleTest.setSize( 600, 600 );
 
 		WindowAdapter close = new WindowAdapter() {
 
@@ -853,12 +852,12 @@ public class RacingGame extends Applet implements Runnable {
 		frame.add( vehicleTest );
 
 		vehicleTest.frame = frame;
-		frame.setSize( 350, 350 );
+		frame.setSize( 600, 600 );
 		//frame.show();
 
 		
 
-		final ICommModule net = module;
+		/*final NetworkModule net = module;
 
 		Thread receiveThread = new Thread() {
 			public void run() {
@@ -870,10 +869,10 @@ public class RacingGame extends Applet implements Runnable {
 		};
 
 		receiveThread.setPriority( Thread.MIN_PRIORITY );
-		receiveThread.start();
+		receiveThread.start();*/
 		
-		if ( dialogResult.toString().equals( "host" ) ) {
-		//if ( true) {
+		//if ( dialogResult.toString().equals( "host" ) ) {
+		if ( true) {
 			final Runnable reseter = new Runnable() {
 				public void run() {
 					synchronized( vehicleTest ) {
@@ -898,7 +897,7 @@ public class RacingGame extends Applet implements Runnable {
 					}
 				}
 			};
-			panel = new Panel();
+			Panel panel = new Panel();
 			Panel sidePanel = new Panel( new GridLayout( 2, 1 ) );
 			Button reset = new Button( "reset" );
 			reset.setActionCommand( "reset" );
@@ -912,7 +911,7 @@ public class RacingGame extends Applet implements Runnable {
 			panel.add( sidePanel );
 			frame.add( panel, BorderLayout.SOUTH );
 		
-			frame.setVisible(true);
+			frame.show();
 			
 			frame.setSize( 350, 350 + sidePanel.getPreferredSize().height );
 		
@@ -931,7 +930,7 @@ public class RacingGame extends Applet implements Runnable {
 		}
 		
 		//frame.setSize( 350, 350 );
-		frame.setVisible(true);
+		frame.show();
 		
 		vehicleTest.start();
 	}

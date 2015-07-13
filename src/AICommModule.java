@@ -1,3 +1,7 @@
+import java.util.LinkedList;
+
+import rlpark.plugin.rltoys.envio.policy.Policy;
+
 /**
  * 
  */
@@ -8,22 +12,37 @@
  */
 public class AICommModule implements ICommModule {
 
+	
+	private LinkedList<Policy> AIPolicies;
+	private LinkedList<Vehicle> Vehicles;
+	private RacingGame game;
 	/* (non-Javadoc)
 	 * @see ICommModule#setRacingGame(RacingGame)
 	 */
 	@Override
 	public void setRacingGame(RacingGame racingGame) {
 		// TODO Auto-generated method stub
-
+        game = racingGame;
 	}
 
+	public void registerPolicy(Policy p){
+		AIPolicies.add(p);
+		reset();
+		
+	}
 	/* (non-Javadoc)
 	 * @see ICommModule#reset()
 	 */
 	@Override
 	public void reset() {
 		// TODO Auto-generated method stub
-
+        Vehicles = new LinkedList<Vehicle>();
+        for(byte i = 0; i < (byte)AIPolicies.size(); i++){
+        	
+        	Vehicles.add(new Vehicle(i, 0, 0));
+        }
+        Vehicles.add(new Vehicle((byte)AIPolicies.size(), 0, 0));
+        
 	}
 
 	/* (non-Javadoc)
@@ -50,7 +69,7 @@ public class AICommModule implements ICommModule {
 	@Override
 	public int getAssignedID() {
 		// TODO Auto-generated method stub
-		return 0;
+		return AIPolicies.size();
 	}
 
 	/* (non-Javadoc)
@@ -77,7 +96,7 @@ public class AICommModule implements ICommModule {
 	@Override
 	public String getTrackName() {
 		// TODO Auto-generated method stub
-		return null;
+		return "circle.track";
 	}
 
 	/* (non-Javadoc)
@@ -113,7 +132,10 @@ public class AICommModule implements ICommModule {
 	@Override
 	public State[] getVehicleStates() {
 		// TODO Auto-generated method stub
-		return null;
+		
+		State[] states = new State[this.Vehicles.size()];
+		
+		return states;
 	}
 
 	/* (non-Javadoc)
@@ -136,7 +158,7 @@ public class AICommModule implements ICommModule {
 
 	/* (non-Javadoc)
 	 * @see ICommModule#getStatus()
-	 */
+	 */		
 	@Override
 	public byte getStatus() {
 		// TODO Auto-generated method stub
