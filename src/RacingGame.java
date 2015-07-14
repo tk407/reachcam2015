@@ -24,8 +24,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 
-import rlpark.plugin.rltoys.algorithms.control.acting.ControlPolicyAdapter;
-import rlpark.plugin.rltoys.envio.policy.Policy;
+//import rlpark.plugin.rltoys.algorithms.control.acting.ControlPolicyAdapter;
+//import rlpark.plugin.rltoys.envio.policy.Policy;
 
 public class RacingGame extends Applet implements Runnable {
 	private Race race = null;
@@ -813,13 +813,13 @@ public class RacingGame extends Applet implements Runnable {
 		NetworkModule.State[] states = module.getVehicleStates(); */
 		//byte id = (byte)module.getAssignedID();
 		byte id = 0;
-		try{ 
+		/*try{ 
 			FileInputStream door = new FileInputStream("reachcarsarsapolicy.ser");
 			ObjectInputStream reader = new ObjectInputStream(door);
-			Policy x = (Policy) reader.readObject(); 
-			ControlPolicyAdapter control = new ControlPolicyAdapter(x);
+			//Policy x = (Policy) reader.readObject(); 
+			//ControlPolicyAdapter control = new ControlPolicyAdapter(x);
 			//control.
-		}catch (IOException | ClassNotFoundException e){ e.printStackTrace();}
+		}catch (IOException | ClassNotFoundException e){ e.printStackTrace();} */
 		
 		//Vehicle[] vehicles = new Vehicle[ states.length ];
 		Vehicle[] vehicles = new Vehicle[ 1 ];
