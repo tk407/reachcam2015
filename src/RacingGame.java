@@ -48,7 +48,7 @@ public class RacingGame extends Applet implements Runnable {
 		track = new Track();
 		//track.sections = sections;
 		setFont( font );
-		setBackground( Color.white );
+		setBackground( Color.blue );
 	}
 
 	public RacingGame( byte id, Vehicle[] vehicles, NetworkModule module ) {
