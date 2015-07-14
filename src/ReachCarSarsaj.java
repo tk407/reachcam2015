@@ -42,7 +42,7 @@ public class ReachCarSarsaj implements Runnable {
     toStateAction.includeActiveFeature();
     double alpha = .15 / projector.vectorNorm();
     double gamma = 1.0;
-    double lambda = .95;
+    double lambda = .99;
     sarsa = new Sarsa(alpha, gamma, lambda, toStateAction.vectorSize(), new RTraces());
     double epsilon = 0.01;
     Policy acting = new EpsilonGreedy(new Random(0), problem.actions(), toStateAction, sarsa, epsilon);
