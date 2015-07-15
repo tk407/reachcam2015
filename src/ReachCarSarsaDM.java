@@ -34,9 +34,9 @@ public class ReachCarSarsaDM implements Runnable {
   private final Clock clock = new Clock("SarsaMountainCar");
 
   public ReachCarSarsaDM() {
-    problem = new ReachCarProblem(null,90000);
+    problem = new ReachCarProblem(null,90000,"circle.track");
     projector = new TileCodersNoHashing(problem.getObservationRanges());
-    projector.addFullTilings(10, 600);
+    projector.addFullTilings(20, 700);
     projector.includeActiveFeature();
     TabularAction toStateAction = new TabularAction(problem.actions(), projector.vectorNorm(), projector.vectorSize());
     toStateAction.includeActiveFeature();
@@ -64,7 +64,7 @@ public class ReachCarSarsaDM implements Runnable {
         System.out.println(String.format("Episode %d: %d steps", nbEpisode, step.time));
         step = problem.initialize();
         x_t = null;
-  if(nbEpisode == 100){
+  if(nbEpisode == 5){
         	
         	try{
         		// Serialize data object to a file
