@@ -56,7 +56,7 @@ public class ReachCarProblem implements ProblemBounded, ProblemDiscreteAction, P
   }
 
   public ReachCarProblem(Random random, int episodeLengthMax) {
-    this(random, episodeLengthMax, "circle.track");
+    this(random, episodeLengthMax, "donington.track");
   }
   
   public ReachCarProblem(Random random, int episodeLengthMax, String trackString) {
@@ -120,7 +120,7 @@ public class ReachCarProblem implements ProblemBounded, ProblemDiscreteAction, P
 	int oldSec = this.sectionCount + numOfLaps*totalSecCount;
 	update((ActionArray) action);
 	int newSec = this.sectionCount + numOfLaps*totalSecCount;
-    double reward = ((double)(newSec-oldSec))*1500.0-1.0 + (numOfLaps>0?20000.0:0.0);
+    double reward = ((double)(newSec-oldSec))*1500.0-(1.0) + (numOfLaps>0?20000.0:0.0);
 	step = new TRStep(step, action, new double[] { this.car.currentState().x, this.car.currentState().y, this.car.currentState().vx, this.car.currentState().vy }, reward);
     if (isGoalReached())
       forceEndEpisode();

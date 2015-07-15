@@ -49,7 +49,7 @@ public class ReachCarSarsa implements Runnable {
 	  }
 
 	  static private void setTileCoders(TileCoders projector) {
-	    projector.addFullTilings(10, 600);
+		projector.addFullTilings(8, 700);
 	    projector.includeActiveFeature();
 	  }
 
@@ -69,7 +69,7 @@ public class ReachCarSarsa implements Runnable {
 	  }
   
   public ReachCarSarsa() {
-	  Random rand = new Random();
+	Random rand = new Random();
     problem = new ReachCarProblem(null,90000);
     projector = createProjector(rand,  problem);
     TabularAction toStateAction = new TabularAction(problem.actions(), projector.vectorNorm(), projector.vectorSize());
@@ -98,7 +98,7 @@ public class ReachCarSarsa implements Runnable {
         System.out.println(String.format("Episode %d: %d steps", nbEpisode, step.time));
         step = problem.initialize();
         x_t = null;
-        if(nbEpisode == 100){
+        if(nbEpisode == 4){
         	
         	try{
         		// Serialize data object to a file

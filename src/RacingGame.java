@@ -102,7 +102,7 @@ public class RacingGame extends Applet implements Runnable {
 			try {
 		
 				//java.io.Reader in = new java.io.FileReader( module.getTrackName() );
-				java.io.Reader in = new java.io.FileReader( "circle.track" );
+				java.io.Reader in = new java.io.FileReader( "donington.track" );
 
 
 				track.load( in );
@@ -119,7 +119,7 @@ public class RacingGame extends Applet implements Runnable {
 				//module.reset();
 				
 			if ( frame != null )
-				frame.setTitle( "circle.track" );
+				frame.setTitle( "donington.track" );
 			
 			//System.out.println( "sections " + track.sections.length );
 		//}
