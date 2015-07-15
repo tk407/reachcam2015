@@ -21,8 +21,11 @@ import java.applet.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.util.Arrays;
+import java.util.LinkedList;
 
 import rlpark.plugin.rltoys.algorithms.functions.states.Projector;
 import rlpark.plugin.rltoys.envio.actions.Action;
@@ -33,8 +36,22 @@ import rlpark.plugin.rltoys.envio.policy.Policy;
 //import rlpark.plugin.rltoys.envio.policy.Policy;
 
 public class RacingGame extends Applet implements Runnable {
+	private static class AIData {
+		public final Policy policy;
+		public final Projector proj;
+		public final int vehicleID;
+		
+		public AIData(Policy pol, Projector pr, int ID){
+			policy = pol;
+			proj = pr;
+			vehicleID = ID;
+		}
+		
+	};
+	
 	private Race race = null;
 	private Vehicle vehicle = null;
+	private AIData[] AIs;
 	private Color[] colors = null;
 	private Track track = null;
 	private Image trackImage = null;
@@ -48,6 +65,7 @@ public class RacingGame extends Applet implements Runnable {
 	private int showLimitFor = 50;
 	private boolean showfps = false; // show frames per second
 	private boolean aimode = true;
+	private boolean playerPresent = true;
 	
 	public RacingGame() {
 
@@ -68,9 +86,23 @@ public class RacingGame extends Applet implements Runnable {
 
 		reset();
 
-		//if(!aimode){
 		initControl();
-		//}
+	}
+	
+	public RacingGame(Vehicle[] vehicles, AIData[] AI){
+		this();
+		this.module = null;
+		colors = new Color[ AI.length ];
+		for ( int i = 0; i < colors.length; i++ ) {
+			colors[ i ] = new Color( 255 - 255*(i%2), 127*(i%3), 255*(i%2) );
+		}
+        AIs = AI;
+        aimode = true;
+        playerPresent=false;
+        
+        race = new Race(null, track, vehicles, null);
+        
+        reset();
 	}
 	
 	private Frame frame = null;
@@ -129,10 +161,11 @@ public class RacingGame extends Applet implements Runnable {
 		finalPosition = null;
 		trackImage = null;
 		
+		if(playerPresent){
 		vehicle.setMotorOn( false );
 		vehicle.reverse( false );
 		vehicle.steerLeft( false );
-		vehicle.steerRight( false );
+		vehicle.steerRight( false );}
 	}
 	
 	public String getAppletInfo() {
@@ -299,22 +332,7 @@ public class RacingGame extends Applet implements Runnable {
 		
 		
 		if(aimode){
-			try{
-				 
-				   FileInputStream fin = new FileInputStream("reachcarsarsapolicy.ser");
-				   ObjectInputStream ois = new ObjectInputStream(fin);
-				   policy = (Policy) ois.readObject();
-				   ois.close();
-				   
-				   fin = new FileInputStream("reachcarsarsaprojector.ser");
-				   ois = new ObjectInputStream(fin);
-				   proj = (Projector) ois.readObject();
-				   ois.close();
-		 
-		 
-			   }catch(Exception ex){
-				   ex.printStackTrace();
-			   } 
+			
 		}
 		
 		while( running && Thread.currentThread() == thread ) { // and this thread
@@ -322,31 +340,39 @@ public class RacingGame extends Applet implements Runnable {
 			race.integrate( dt );
 			Thread.yield();
 			
-			Body.State state = vehicle.currentState();
-			if(aimode && proj!=null && policy!=null){
-				Action a = Policies.decide(policy, proj.project(new double[] {state.x, state.y, state.vx, state.vy}));
+			Body.State state;
+			if(aimode){
+				Vehicle[] cars = this.race.getVehicles();
+				for(int i = 0; i < AIs.length; i++){
+				Vehicle car = cars[AIs[i].vehicleID];
+                Body.State cstate = car.currentState();				
+				Action a = Policies.decide(AIs[i].policy, AIs[i].proj.project(new double[] {cstate.x, cstate.y, cstate.vx, cstate.vy}));
 				if(a.equals(ReachCarProblem.DOWN)) {
-			    	  vehicle.setMotorOn( false );
-			    	  vehicle.reverse( true );
+			    	  car.setMotorOn( false );
+			    	  car.reverse( true );
 			    	 // this.car.reverse(true);
 			      }
 			      else if(a.equals(ReachCarProblem.UP)) {
-			    	  vehicle.setMotorOn( true );
-			    	  vehicle.reverse(false); 	  
+			    	  car.setMotorOn( true );
+			    	  car.reverse(false); 	  
 			      }
 			      else if(a.equals(ReachCarProblem.LEFT)) {
-			    	  vehicle.steerLeft(true);
-			    	  vehicle.steerRight(false);
+			    	  car.steerLeft(true);
+			    	  car.steerRight(false);
 
 			      }
 			      if(a.equals(ReachCarProblem.NOSTEER)) {
-			    	  vehicle.steerLeft(false);
-			    	  vehicle.steerRight(false);
+			    	  car.steerLeft(false);
+			    	  car.steerRight(false);
 			      }
 			      else if(a.equals(ReachCarProblem.RIGHT)) {
-			    	  vehicle.steerLeft(false);
-			    	  vehicle.steerRight(true);
+			    	  car.steerLeft(false);
+			    	  car.steerRight(true);
 			     }
+			}
+		    state = (this.race.getVehicles())[0].currentState();
+			} else {
+				state = vehicle.currentState();
 			}
 			//System.out.println( state.x, state.y );
 			
@@ -548,7 +574,9 @@ public class RacingGame extends Applet implements Runnable {
 								 this );
 		
 		int[] trackCounts = race.getTrackCounts();
-		int trackCount = trackCounts[ vehicle.getID() ];
+		int trackCount = 0;
+		if(playerPresent){
+				trackCount=trackCounts[ vehicle.getID() ];}
 
 		int textX = clipPoint.x + size.width - TRACK_IMAGE_SIZE - 70,
 			textY = clipPoint.y + size.height - TRACK_IMAGE_SIZE - inset + 5;
@@ -558,7 +586,8 @@ public class RacingGame extends Applet implements Runnable {
 					 textX, textY );
 
 		int[] ranks = race.getRanks();
-		int rank = ranks[ vehicle.getID() ];
+		int rank = 0;
+		if(playerPresent){rank = ranks[ vehicle.getID() ];}
 
 		String rankString = ""+rank;
 
@@ -575,7 +604,7 @@ public class RacingGame extends Applet implements Runnable {
 
 		/*g.drawString( "" + (int)vehicle.currentState().speed(), 
 					 textX, 
-					 textY + 40 );*/
+					 textY + 40 );
 		
 		g.drawString( "col: ", 
 					 textX, 
@@ -592,7 +621,7 @@ public class RacingGame extends Applet implements Runnable {
 		g.setColor( getForeground() );
 		g.drawRect( textX + 40, 
 					textY + 30, 
-				   10, 10 );
+				   10, 10 ); */
 		
 		int numLaps = race.getNumLaps();
 		
@@ -784,17 +813,81 @@ public class RacingGame extends Applet implements Runnable {
 		about.setModal( true );
 		
 		about.pack();
-		about.show();
+		about.setVisible(true);
+	}
+	private static Dialog aidlg = null;
+
+	public static String[] showAiMode(Frame parent) {
+		LinkedList<String> AIFiles = new LinkedList<String>();
+		
+		aidlg = new Dialog( parent, "Add AIs" );	
+	    
+	    List listComp = new List();
+		
+	    
+		
+		final FileDialog aifileDialog = new FileDialog(parent,"Select AI file");
+	      Button showFileDialogButton = new Button("Open File");
+	      showFileDialogButton.addActionListener(new ActionListener() {
+	         @Override
+	         public void actionPerformed(ActionEvent e) {
+	            aifileDialog.setVisible(true);
+	            AIFiles.add(aifileDialog.getDirectory() + aifileDialog.getFile());
+	            listComp.add(aifileDialog.getFile());
+	         }
+	      });
+	      
+	      
+
+	      aidlg.setLayout( new GridLayout( 4, 1 ) );
+          aidlg.add(new Label("Add AI data in two steps: first policy then projector!"));
+	      aidlg.add(showFileDialogButton);
+	      aidlg.add(listComp);
+	      
+	      Button ok = new Button( "Ok" );
+			ok.addActionListener( new ActionListener() {
+									public void actionPerformed( ActionEvent ae ) {
+										aidlg.dispose();
+									}
+								  } );
+								  
+			aidlg.add( ok );
+			aidlg.setModal( true );
+			
+			aidlg.pack();
+			aidlg.setVisible(true);
+			Object[] objectArray = AIFiles.toArray();
+	      return Arrays.copyOf(objectArray, objectArray.length, String[].class);
 	}
 
+	public static AIData loadAIData(String policyPath, String projectorPath, int ID) throws IOException, ClassNotFoundException{
+		Policy policy;
+		Projector proj;
+			 
+			   FileInputStream fin = new FileInputStream(policyPath);
+			   ObjectInputStream ois = new ObjectInputStream(fin);
+			   policy = (Policy) ois.readObject();
+			   ois.close();
+			   
+			   fin = new FileInputStream(projectorPath);
+			   ois = new ObjectInputStream(fin);
+			   proj = (Projector) ois.readObject();
+			   ois.close(); 
+			   
+	    return new AIData(policy,proj,ID);
+		
+	}
+	
 	public static void main( String[] args ) {
 
+		boolean aimodeFlag = false;
+		 String[] AIf = null;
 		/*if ( args.length == 0 ) {
 			VehicleTest test = new VehicleTest();
 			return;
 		}*/
 		 final Frame frame = new Frame();
-		/*final Dialog dialog = new Dialog( frame, "RacingGame" );
+		final Dialog dialog = new Dialog( frame, "RacingGame" );
 		dialog.setLayout( new GridLayout( 4, 1 ) );
 
 		Button host = new Button( "Host" );
@@ -808,6 +901,10 @@ public class RacingGame extends Applet implements Runnable {
 		panel.add( join );
 		panel.add( hostAddress );
 		dialog.add( panel );
+		
+		Button aimodebtn = new Button( "AI Mode" );
+		aimodebtn.setActionCommand( "aimode" );
+		dialog.add( aimodebtn );
 
 		Button about = new Button( "About" );
 		about.setActionCommand( "about" );
@@ -830,6 +927,10 @@ public class RacingGame extends Applet implements Runnable {
 					dialogResult.append( "join" );
 					dialog.dispose();
 				}
+				else if ( command.equals( "aimode" ) ) {
+					dialogResult.append( "aimode" );
+					dialog.dispose();
+				}
 				else if ( command.equals( "about" ) ) {
 					showAbout( frame );
 				}
@@ -840,6 +941,7 @@ public class RacingGame extends Applet implements Runnable {
 		};
 
 		host.addActionListener( actionListener );
+		aimodebtn.addActionListener(actionListener);
 		join.addActionListener( actionListener );
 		about.addActionListener( actionListener );
 		cancel.addActionListener( actionListener );
@@ -849,23 +951,29 @@ public class RacingGame extends Applet implements Runnable {
 		dialog.show();
 
 		NetworkModule module = null;
+		NetworkModule.State[] states;
 		if ( dialogResult.toString().equals( "host" ) ) {
 
 			module = new NetworkModule( 1234 );
 
 			String result = module.listenAsServer();
 			System.out.println( result );
+			states = module.getVehicleStates();
 
 		}
-		else {
+		else if ( dialogResult.toString().equals( "aimode" ) ){
+			AIf = showAiMode(frame);
+			aimodeFlag= true;
+		} else {
 
 			module = new NetworkModule( 1235 );
 
 			String result = module.connectToServer( hostAddress.getText(), 1234 );
 			System.out.println( result );
+			states = module.getVehicleStates();
+
 		}
 
-		NetworkModule.State[] states = module.getVehicleStates(); */
 		//byte id = (byte)module.getAssignedID();
 		byte id = 0;
 		/*try{ 
@@ -877,14 +985,51 @@ public class RacingGame extends Applet implements Runnable {
 		}catch (IOException | ClassNotFoundException e){ e.printStackTrace();} */
 		
 		//Vehicle[] vehicles = new Vehicle[ states.length ];
-		Vehicle[] vehicles = new Vehicle[ 1 ];
+		Vehicle[] vehicles = new Vehicle[1];
+		if(aimodeFlag){
+			
+			vehicles= new Vehicle[ AIf.length/2 ];
+		}
 
 		for ( int i = 0; i < vehicles.length; i++ ) {
 			vehicles[ i ] = new Vehicle( (byte)i, 224 + i*10, 128 );
 		}
 
 		//final RacingGame vehicleTest = new RacingGame( id, vehicles, module );
-		final RacingGame vehicleTest = new RacingGame( id, vehicles, null );
+		final RacingGame vehicleTest;
+		if(aimodeFlag){
+			boolean loadOK = false;
+			assert(AIf != null);
+			assert(AIf.length % 2 == 0);
+			AIData[] ais = new AIData[AIf.length/2];
+			try {
+			for(int i = 0; i*2< AIf.length; i++){
+				
+					ais[i] = loadAIData(AIf[i*2], AIf[2*i+1], i);
+					vehicles[ i ] = new Vehicle( (byte)i, 224 + i*10, 128 );
+				
+				
+				
+			}
+			
+			loadOK=true;
+			} catch (ClassNotFoundException | IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				
+			}
+			if(loadOK){
+				vehicleTest= new RacingGame(vehicles, ais);
+			} else
+			{
+				vehicleTest = null;
+			}
+			
+		}
+		else
+		{
+			vehicleTest = new RacingGame( id, vehicles, null );
+		}
 		vehicleTest.setSize( 600, 600 );
 
 		WindowAdapter close = new WindowAdapter() {
@@ -952,7 +1097,7 @@ public class RacingGame extends Applet implements Runnable {
 					}
 				}
 			};
-			Panel panel = new Panel();
+			panel = new Panel();
 			Panel sidePanel = new Panel( new GridLayout( 2, 1 ) );
 			Button reset = new Button( "reset" );
 			reset.setActionCommand( "reset" );
