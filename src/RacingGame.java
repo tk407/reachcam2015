@@ -24,6 +24,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 
+import rlpark.plugin.rltoys.algorithms.functions.states.Projector;
+import rlpark.plugin.rltoys.envio.actions.Action;
+import rlpark.plugin.rltoys.envio.policy.Policies;
+import rlpark.plugin.rltoys.envio.policy.Policy;
+
 //import rlpark.plugin.rltoys.algorithms.control.acting.ControlPolicyAdapter;
 //import rlpark.plugin.rltoys.envio.policy.Policy;
 
@@ -42,6 +47,7 @@ public class RacingGame extends Applet implements Runnable {
 	private boolean limit = true; // limit frame rate
 	private int showLimitFor = 50;
 	private boolean showfps = false; // show frames per second
+	private boolean aimode = true;
 	
 	public RacingGame() {
 
@@ -62,8 +68,9 @@ public class RacingGame extends Applet implements Runnable {
 
 		reset();
 
-		
+		//if(!aimode){
 		initControl();
+		//}
 	}
 	
 	private Frame frame = null;
@@ -285,7 +292,30 @@ public class RacingGame extends Applet implements Runnable {
 		int sleepTime = 10;
 		
 		Graphics g = getGraphics();
-
+        
+		
+		Policy policy = null;
+		Projector proj = null;
+		
+		
+		if(aimode){
+			try{
+				 
+				   FileInputStream fin = new FileInputStream("reachcarsarsapolicy.ser");
+				   ObjectInputStream ois = new ObjectInputStream(fin);
+				   policy = (Policy) ois.readObject();
+				   ois.close();
+				   
+				   fin = new FileInputStream("reachcarsarsaprojector.ser");
+				   ois = new ObjectInputStream(fin);
+				   proj = (Projector) ois.readObject();
+				   ois.close();
+		 
+		 
+			   }catch(Exception ex){
+				   ex.printStackTrace();
+			   } 
+		}
 		
 		while( running && Thread.currentThread() == thread ) { // and this thread
 
@@ -293,6 +323,31 @@ public class RacingGame extends Applet implements Runnable {
 			Thread.yield();
 			
 			Body.State state = vehicle.currentState();
+			if(aimode && proj!=null && policy!=null){
+				Action a = Policies.decide(policy, proj.project(new double[] {state.x, state.y, state.vx, state.vy}));
+				if(a.equals(ReachCarProblem.DOWN)) {
+			    	  vehicle.setMotorOn( false );
+			    	  vehicle.reverse( true );
+			    	 // this.car.reverse(true);
+			      }
+			      else if(a.equals(ReachCarProblem.UP)) {
+			    	  vehicle.setMotorOn( true );
+			    	  vehicle.reverse(false); 	  
+			      }
+			      else if(a.equals(ReachCarProblem.LEFT)) {
+			    	  vehicle.steerLeft(true);
+			    	  vehicle.steerRight(false);
+
+			      }
+			      if(a.equals(ReachCarProblem.NOSTEER)) {
+			    	  vehicle.steerLeft(false);
+			    	  vehicle.steerRight(false);
+			      }
+			      else if(a.equals(ReachCarProblem.RIGHT)) {
+			    	  vehicle.steerLeft(false);
+			    	  vehicle.steerRight(true);
+			     }
+			}
 			//System.out.println( state.x, state.y );
 			
 			scrollTo( (int)(state.x -0.5*size.width), (int)(state.y - 0.5*size.height) );

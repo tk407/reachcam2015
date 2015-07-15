@@ -14,7 +14,7 @@ import zephyr.plugin.core.api.monitoring.annotations.Monitor;
 public class ReachCarProblem implements ProblemBounded, ProblemDiscreteAction, ProblemContinuousAction {
   static private final double MaxActionValue = 1.0;
   public static final ActionArray UP = new ActionArray(0.0, MaxActionValue);
-  public static final ActionArray DOWN = new ActionArray(0.0, 0.0);
+  public static final ActionArray DOWN = new ActionArray(0.0, -MaxActionValue);
   public static final ActionArray NOSTEER = new ActionArray(MaxActionValue, 0.0);
   public static final ActionArray RIGHT = new ActionArray(MaxActionValue, MaxActionValue);
   public static final ActionArray LEFT = new ActionArray(-MaxActionValue, MaxActionValue);
@@ -87,7 +87,7 @@ public class ReachCarProblem implements ProblemBounded, ProblemDiscreteAction, P
       this.race.integrate(0.05f);
       if(action.equals(DOWN)) {
     	  this.car.setMotorOn( false );
-    	 // this.car.reverse(true);
+    	  this.car.reverse(true);
       }
       else if(action.equals(UP)) {
     	  this.car.setMotorOn( true );
