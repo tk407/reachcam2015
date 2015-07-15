@@ -70,7 +70,7 @@ public class ReachCarSarsa implements Runnable {
   
   public ReachCarSarsa() {
 	Random rand = new Random();
-    problem = new ReachCarProblem(null,90000);
+    problem = new ReachCarProblem(rand,90000);
     projector = createProjector(rand,  problem);
     TabularAction toStateAction = new TabularAction(problem.actions(), projector.vectorNorm(), projector.vectorSize());
     toStateAction.includeActiveFeature();
