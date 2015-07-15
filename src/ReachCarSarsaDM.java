@@ -42,7 +42,7 @@ public class ReachCarSarsaDM implements Runnable {
     toStateAction.includeActiveFeature();
     double alpha = .15 / projector.vectorNorm();
     double gamma = 1.0;
-    double lambda = .95;
+    double lambda = .95; 
     sarsa = new Sarsa(alpha, gamma, lambda, toStateAction.vectorSize(), new RTraces());
     double epsilon = 0.01;
     Policy acting = new EpsilonGreedy(new Random(0), problem.actions(), toStateAction, sarsa, epsilon);
@@ -64,7 +64,7 @@ public class ReachCarSarsaDM implements Runnable {
         System.out.println(String.format("Episode %d: %d steps", nbEpisode, step.time));
         step = problem.initialize();
         x_t = null;
-        if(nbEpisode == 5){
+  if(nbEpisode == 100){
         	
         	try{
         		// Serialize data object to a file
@@ -72,8 +72,8 @@ public class ReachCarSarsaDM implements Runnable {
         		out.writeObject(control.acting());
         		out.close();
         		
-        		 out = new ObjectOutputStream(new FileOutputStream("reachcarsarsaproblem.ser"));
-        		out.writeObject(control.acting());
+        		 out = new ObjectOutputStream(new FileOutputStream("reachcarsarsaprojector.ser"));
+        		out.writeObject(projector);
         		out.close();
         		} catch (IOException e) {
         			e.printStackTrace();
