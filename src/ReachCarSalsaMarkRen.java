@@ -49,7 +49,7 @@ public class ReachCarSalsaMarkRen implements Runnable {
 	  }
 
 	  static private void setTileCoders(TileCoders projector) {
-		projector.addFullTilings(8, 700);
+		projector.addFullTilings(10, 700);
 	    projector.includeActiveFeature();
 	  }
 

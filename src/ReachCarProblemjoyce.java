@@ -11,7 +11,7 @@ import rlpark.plugin.rltoys.problems.ProblemContinuousAction;
 import rlpark.plugin.rltoys.problems.ProblemDiscreteAction;
 import zephyr.plugin.core.api.monitoring.annotations.Monitor;
 
-public class ReachCarProblem implements ProblemBounded, ProblemDiscreteAction, ProblemContinuousAction {
+public class ReachCarProblemjoyce implements ProblemBounded, ProblemDiscreteAction, ProblemContinuousAction {
   static private final double MaxActionValue = 1.0;
   public static final ActionArray UP = new ActionArray(0.0, MaxActionValue);
   public static final ActionArray DOWN = new ActionArray(0.0, -MaxActionValue);
@@ -51,15 +51,15 @@ public class ReachCarProblem implements ProblemBounded, ProblemDiscreteAction, P
   private TRStep step;
   private final int episodeLengthMax;
 
-  public ReachCarProblem(Random random) {
+  public ReachCarProblemjoyce(Random random) {
     this(random, -1);
   }
 
-  public ReachCarProblem(Random random, int episodeLengthMax) {
+  public ReachCarProblemjoyce(Random random, int episodeLengthMax) {
     this(random, episodeLengthMax, "donington.track");
   }
   
-  public ReachCarProblem(Random random, int episodeLengthMax, String trackString) {
+  public ReachCarProblemjoyce(Random random, int episodeLengthMax, String trackString) {
 	    this.random = random;
 	    this.episodeLengthMax = episodeLengthMax;
 	    this.trackName = trackString;

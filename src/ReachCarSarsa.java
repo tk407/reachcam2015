@@ -31,6 +31,7 @@ import rlpark.plugin.rltoys.math.vector.implementations.Vectors;
 import rlpark.plugin.rltoys.problems.ProblemBounded;
 import rlpark.plugin.rltoys.problems.mountaincar.MountainCar;
 import rlpark.plugin.rltoys.problems.puddleworld.PuddleWorld;
+import rlpark.plugin.rltoys.utils.Utils;
 import zephyr.plugin.core.api.Zephyr;
 import zephyr.plugin.core.api.monitoring.annotations.Monitor;
 import zephyr.plugin.core.api.synchronization.Clock;
@@ -49,7 +50,7 @@ public class ReachCarSarsa implements Runnable {
 	  }
 
 	  static private void setTileCoders(TileCoders projector) {
-		projector.addFullTilings(8, 700);
+		projector.addFullTilings(15, 700);
 	    projector.includeActiveFeature();
 	  }
 
@@ -70,7 +71,7 @@ public class ReachCarSarsa implements Runnable {
   
   public ReachCarSarsa() {
 	Random rand = new Random();
-    problem = new ReachCarProblem(rand,150000);
+    problem = new ReachCarProblem(rand,40000,"circle.track");
     projector = createProjector(rand,  problem);
     TabularAction toStateAction = new TabularAction(problem.actions(), projector.vectorNorm(), projector.vectorSize());
     toStateAction.includeActiveFeature();
@@ -98,7 +99,7 @@ public class ReachCarSarsa implements Runnable {
         System.out.println(String.format("Episode %d: %d steps", nbEpisode, step.time));
         step = problem.initialize();
         x_t = null;
-        if(nbEpisode == 4){
+        if(nbEpisode == 100){
         	
         	try{
         		// Serialize data object to a file
