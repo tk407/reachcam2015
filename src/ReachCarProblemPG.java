@@ -57,7 +57,7 @@ public class ReachCarProblemPG implements ProblemBounded, ProblemDiscreteAction,
   }
 
   public ReachCarProblemPG(Random random, int episodeLengthMax) {
-    this(random, episodeLengthMax, "donington.track");
+    this(random, episodeLengthMax, "circle.track");
   }
   
   public ReachCarProblemPG(Random random, int episodeLengthMax, String trackString) {
