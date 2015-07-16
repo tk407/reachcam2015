@@ -27,14 +27,14 @@ import zephyr.plugin.core.api.synchronization.Clock;
 @Monitor
 public class ReachCarSarsaDM implements Runnable {
   //final FunctionProjected2D valueFunctionDisplay;
-  private final ReachCarProblem problem;
+  private final ReachCarProblemDM problem;
   private final SarsaControl control;
   private final Sarsa sarsa;
   private final TileCodersNoHashing projector;
   private final Clock clock = new Clock("SarsaMountainCar");
 
   public ReachCarSarsaDM() {
-    problem = new ReachCarProblem(null,90000,"circle.track");
+    problem = new ReachCarProblemDM(null,90000,"circle.track");
     projector = new TileCodersNoHashing(problem.getObservationRanges());
     projector.addFullTilings(20, 700);
     projector.includeActiveFeature();
