@@ -18,7 +18,8 @@ public class ReachCarProblemPG implements ProblemBounded, ProblemDiscreteAction,
   public static final ActionArray NOSTEER = new ActionArray(MaxActionValue, 0.0);
   public static final ActionArray RIGHT = new ActionArray(MaxActionValue, MaxActionValue);
   public static final ActionArray LEFT = new ActionArray(-MaxActionValue, MaxActionValue);
-  protected static final Action[] Actions = { UP,DOWN,LEFT,RIGHT, NOSTEER };
+  public static final ActionArray BRAKE = new ActionArray(-MaxActionValue, MaxActionValue);
+  protected static final Action[] Actions = { UP,DOWN,LEFT,RIGHT, NOSTEER, BRAKE };
   static public final Range ActionRange = new Range(-MaxActionValue, MaxActionValue);
 
   public static final String VELOCITY = "velocity";
@@ -105,6 +106,12 @@ public class ReachCarProblemPG implements ProblemBounded, ProblemDiscreteAction,
       else if(action.equals(RIGHT)) {
     	  this.car.steerLeft(false);
     	  this.car.steerRight(true);
+    	  
+      if(action.equals(BRAKE)) {
+    	  this.car.setMotorOn( false );
+    	  this.car.reverse( false );
+      }
+    	  
      }
     positionX = this.car.currentState().x;
   	positionY = this.car.currentState().y;
@@ -118,11 +125,16 @@ public class ReachCarProblemPG implements ProblemBounded, ProblemDiscreteAction,
 	int totalSecCount = this.track.sections.length;
 	int numOfLaps = this.race.getTrackCounts()[0];
 	int oldSec = this.sectionCount + numOfLaps*totalSecCount;
+	int nextSection = (this.sectionCount + 1) % totalSecCount;
+	
+	double oldDist = this.track.sections[nextSection].distanceToEnd(this.car);
 	double oldPosX = positionX;
 	update((ActionArray) action);
+	
+	double newDist = this.track.sections[nextSection].distanceToEnd(this.car);
 	double newPosX = positionX;
 	int newSec = this.sectionCount + numOfLaps*totalSecCount;
-    double reward = ((double)(newSec-oldSec))*1500.0-(1.0) + (numOfLaps>0?20000.0:0.0);
+    double reward = ((double)(newSec-oldSec))*1500.0 + (numOfLaps>0?20000.0:0.0) - (newSec - oldSec!=0?1.0:(newDist - oldDist>0?0.5:1.0));
 	step = new TRStep(step, action, new double[] { this.car.currentState().x, this.car.currentState().y, this.car.currentState().vx, this.car.currentState().vy }, reward);
     if (isGoalReached())
       forceEndEpisode();
