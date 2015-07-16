@@ -64,7 +64,7 @@ public class ReachCarSarsaDM implements Runnable {
         System.out.println(String.format("Episode %d: %d steps", nbEpisode, step.time));
         step = problem.initialize();
         x_t = null;
-  if(nbEpisode == 5){
+  if(nbEpisode == 10){
         	
         	try{
         		// Serialize data object to a file
