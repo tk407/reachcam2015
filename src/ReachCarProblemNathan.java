@@ -117,10 +117,22 @@ public class ReachCarProblemNathan implements ProblemBounded, ProblemDiscreteAct
   public TRStep step(Action action) {
 	int totalSecCount = this.track.sections.length;
 	int numOfLaps = this.race.getTrackCounts()[0];
+	
 	int oldSec = this.sectionCount + numOfLaps*totalSecCount;
 	update((ActionArray) action);
+	int nextSection = (this.sectionCount + 1) % totalSecCount;
+	double oldDist = this.track.sections[nextSection].distanceToEnd(this.car);
+	double oldPosX = positionX;
+	update((ActionArray) action);
+	double newDist = this.track.sections[nextSection].distanceToEnd(this.car);
+	double newPosX = positionX;
 	int newSec = this.sectionCount + numOfLaps*totalSecCount;
-    double reward = ((double)(newSec-oldSec))*1500.0-(1.0) + (numOfLaps>0?20000.0:0.0);
+	
+    
+	double reward = ((double)(newSec-oldSec))*1500.0-(newSec-oldSec!=0?1.0:(newDist-oldDist>0?0.5:1.0)) + (numOfLaps>0?20000.0:0.0);
+	
+	
+	
 	step = new TRStep(step, action, new double[] { this.car.currentState().x, this.car.currentState().y, this.car.currentState().vx, this.car.currentState().vy }, reward);
     if (isGoalReached())
       forceEndEpisode();
